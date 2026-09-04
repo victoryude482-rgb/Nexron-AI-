@@ -1,1 +1,1 @@
-{"name":"@nexron/agent-runtime","private":true,"version":"0.1.0","type":"module","scripts":{"typecheck":"tsc --noEmit"},"dependencies":{"@nexron/ai-router":"workspace:*","@nexron/shared":"workspace:*","@nexron/taskmaster":"workspace:*"}}
+{"name":"@nexron/agent-runtime","private":true,"version":"0.1.0","type":"module","scripts":{"typecheck":"tsc --noEmit"},"dependencies":{"@nexron/ai-router":"workspace:*","@nexron/shared":"workspace:*","@nexron/taskmaster":"workspace:*","@nexron/lead-intelligence":"workspace:*"}}
