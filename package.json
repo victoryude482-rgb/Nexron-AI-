@@ -1,0 +1,14 @@
+{
+  "name": "nexron-ai",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Modular free-first AI workspace.",
+  "packageManager": "pnpm@10.0.0",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @nexron/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint"
+  }
+}
