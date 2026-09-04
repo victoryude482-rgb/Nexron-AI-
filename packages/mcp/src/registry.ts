@@ -1,28 +1,42 @@
+import { ApprovalRequiredError } from "@nexron/shared";
 import type { ToolDefinition, ToolRequest } from "@nexron/shared";
 
+export interface ToolContext {
+  readonly signal?: AbortSignal;
+}
+
 export interface ToolHandler {
-  definition: ToolDefinition;
-  execute(input: unknown): Promise<unknown>;
+  readonly definition: ToolDefinition;
+  execute(input: unknown, context: ToolContext): Promise<unknown>;
 }
 
 export class ToolRegistry {
   private readonly handlers = new Map<string, ToolHandler>();
 
   register(handler: ToolHandler): void {
-    if (this.handlers.has(handler.definition.name)) throw new Error(`Tool already registered: ${handler.definition.name}`);
-    this.handlers.set(handler.definition.name, handler);
+    const name = handler.definition.name.trim();
+    if (!name) throw new Error("Tool name cannot be empty.");
+    if (this.handlers.has(name)) throw new Error("Tool already registered: " + name);
+    this.handlers.set(name, handler);
   }
 
-  list(): ToolDefinition[] {
-    return [...this.handlers.values()].map(h => h.definition);
+  unregister(name: string): boolean {
+    return this.handlers.delete(name);
   }
 
-  async execute(request: ToolRequest): Promise<unknown> {
+  list(): readonly ToolDefinition[] {
+    return [...this.handlers.values()].map(handler => handler.definition);
+  }
+
+  async execute(request: ToolRequest, context: ToolContext = {}): Promise<unknown> {
+    if (context.signal?.aborted) throw context.signal.reason;
     const handler = this.handlers.get(request.tool);
-    if (!handler) throw new Error(`Unknown tool: ${request.tool}`);
+    if (!handler) throw new Error("Unknown tool: " + request.tool);
+
     if (handler.definition.risk === "high" && !request.approvalRequired) {
-      throw new Error(`High-risk tool ${request.tool} requires explicit approval.`);
+      throw new ApprovalRequiredError(request.tool);
     }
-    return handler.execute(request.input);
+
+    return handler.execute(request.input, context);
   }
 }
