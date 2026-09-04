@@ -19,7 +19,7 @@ export interface AgentTaskPlanner {
 }
 
 export interface AgentToolBridge {
-  execute(request: ToolRequest): Promise<unknown>;
+  execute(request: ToolRequest, signal?: AbortSignal): Promise<unknown>;
 }
 
 export interface AgentRunResult {
@@ -38,14 +38,17 @@ export class AgentRuntime {
     this.executor = new TaskExecutor({
       execute: async (task, context) => {
         if (context.signal?.aborted) throw context.signal.reason;
+
         const messages: ChatMessage[] = [
           { role: "system", content: "You are the Nexron agent executing: " + task.title },
           { role: "user", content: typeof task.input === "string" ? task.input : JSON.stringify(task.input ?? {}) },
         ];
+
         const result = await this.router.complete(
           { messages, capability: task.capability, stream: false },
           { freeFirst: true, signal: context.signal },
         );
+
         return { ...task, status: "completed", output: result.content };
       },
     });
@@ -55,13 +58,16 @@ export class AgentRuntime {
     const planned = await this.planner.plan(input, context);
     const tasks = await this.executor.run(planned, { signal: context.signal });
     const completed = tasks.filter(task => task.status === "completed");
+
     if (!completed.length) throw new Error("Agent run completed without a successful task.");
 
     const final = await this.router.complete({
       messages: [
         ...(context.messages ?? []),
         { role: "user", content: "Original request: " + input },
-        { role: "assistant", content: JSON.stringify(completed.map(t => ({ id: t.id, title: t.title, output: t.output }))) },
+        { role: "assistant", content: JSON.stringify(completed.map(task => ({
+          id: task.id, title: task.title, output: task.output,
+        }))) },
         { role: "user", content: "Synthesize the completed task outputs into the final answer." },
       ],
       capability: "chat",
