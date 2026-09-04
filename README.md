@@ -1,40 +1,29 @@
 # Nexron AI
 
-Nexron AI is a modular, free-first AI workspace combining agent orchestration, coding, browser automation, lead intelligence, model routing, memory, MCP, and controlled execution.
-
-## Source projects
-
-The design is informed by the user's existing repositories:
-
-- leadpilot-ai / leadpilot-ai1 — lead intelligence
-- Free-LLM-1 — provider routing and AI workspace concepts
-- hermes-agent-1 — agent runtime, skills, memory, MCP and tasks
-- claudecodeui — developer workspace UI concepts
-- browser-use — browser automation
-- openinterpreter — code/computer execution concepts
-- 500-AI-Agents-Projects — agent patterns
-- LocalAI — local model serving
-- FREE-LLM-API-Provider / no-cost-ai / free-llm-api-resources — provider discovery
-- kit / developerFolio / hugo-theme-academic-cv — presentation/documentation references
-- freebuff — agent/runtime architecture reference
-
-**All source repositories remain separate and untouched.** Nexron is a new repository. Source code will only be copied after compatibility, security, and license review.
+Nexron is a modular AI workspace built around a planner, task graph executor, capability dispatcher, provider router, protected tools, and persistent conversations.
 
 ## Architecture
+- Agent Runtime plans and executes work.
+- Taskmaster validates dependency graphs and runs independent tasks concurrently.
+- AI Router selects compatible providers with free-first routing, retry, circuit breaking, and streaming fallback.
+- MCP layer exposes approved external tools through a registry.
+- Lead Intelligence can connect to the existing LeadPilot service through an HTTP adapter.
+- Memory supports in-memory development storage and Supabase persistence.
+- Security provides request validation, rate limiting, CORS helpers, and server authentication boundaries.
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/SOURCE-MAP.md](docs/SOURCE-MAP.md), and [docs/ROADMAP.md](docs/ROADMAP.md).
+## Backend endpoints
+- GET /api/health
+- POST /api/chat
+- POST /api/chat/stream (SSE)
+- GET /api/conversations
+- POST /api/conversations
+- GET /api/conversations/:id
+- DELETE /api/conversations/:id
 
-## Principles
+Set environment variables from .env.example. Never commit API keys or service-role credentials.
 
-1. Free-first and provider-independent.
-2. Adapters instead of a monolithic code dump.
-3. Sandboxed execution and explicit permissions.
-4. Web-first deployment with optional workers.
-5. Lead intelligence is a first-class capability.
-6. MCP is a common tool protocol.
-7. Persistent project/user memory with retrieval.
-8. Never modify the source repositories as part of Nexron development.
+## Existing repositories
+Nexron integrates through stable boundaries so the original repositories remain unchanged. LeadPilot can be connected with LEADPILOT_URL; other external agent/tool implementations can be exposed through MCP or compatible HTTP adapters.
 
-## Status
-
-Phase 0 — foundation and architecture.
+## Production notes
+Use a real identity provider for multi-user authentication and keep SUPABASE_SERVICE_ROLE_KEY server-side only. The included NEXRON_API_TOKEN is a service/API authentication boundary, not a replacement for a full user identity system.
