@@ -34,6 +34,9 @@ export interface AgentTask {
   dependsOn: string[];
   capability: Capability;
   status: "pending" | "running" | "completed" | "failed" | "blocked";
+  input?: unknown;
+  output?: unknown;
+  error?: string;
 }
 
 export interface ToolDefinition {
