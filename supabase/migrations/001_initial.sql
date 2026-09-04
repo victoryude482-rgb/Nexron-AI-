@@ -8,4 +8,5 @@ create table if not exists public.conversations (
 );
 create index if not exists conversations_user_updated_idx on public.conversations(user_id,updated_at desc);
 alter table public.conversations enable row level security;
-create policy "service role manages conversations" on public.conversations for all using (true) with check (true);
+-- No public/anon policy is granted. The server uses the Supabase service-role key,
+-- which bypasses RLS; accidental client-side use of the anon key cannot read rows.
