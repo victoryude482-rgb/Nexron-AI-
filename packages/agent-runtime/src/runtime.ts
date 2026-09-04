@@ -1,7 +1,6 @@
 import type { AgentTask, Capability, ChatMessage, ProviderResponse, ToolRequest } from "@nexron/shared";
 import type { AIRouter } from "@nexron/ai-router";
 import { TaskExecutor } from "@nexron/taskmaster";
-import type { AgentDefinition } from "./runtime.js";
 import { BUILTIN_AGENTS } from "./specialists.js";
 import { CapabilityDispatcher } from "./dispatcher.js";
 
