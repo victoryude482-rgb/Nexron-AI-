@@ -4,7 +4,7 @@ export interface ConversationStore { get(id:string,userId:string):Promise<Conver
 export class InMemoryConversationStore implements ConversationStore{
  private readonly data=new Map<string,Conversation>();
  async get(id:string,userId:string){const value=this.data.get(id);return value?.userId===userId?structuredClone(value):null;}
- async list(userId:string){return [...this.data.values()].filter(x=>x.userId===userId).sort((a,b)=>b.updatedAt-a.updatedAt).map(structuredClone);}
+ async list(userId:string){return [...this.data.values()].filter(x=>x.userId===userId).sort((a,b)=>b.updatedAt-a.updatedAt).map(value=>structuredClone(value));}
  async upsert(c:Conversation){this.data.set(c.id,structuredClone(c));}
  async delete(id:string,userId:string){const c=this.data.get(id);if(!c||c.userId!==userId)return false;this.data.delete(id);return true;}
 }
