@@ -1,48 +1,68 @@
+import { ProviderError } from "@nexron/shared";
 import type { Capability, ModelDescriptor, ProviderRequest, ProviderResponse } from "@nexron/shared";
+import { CircuitBreaker } from "./circuit-breaker.js";
+import { withRetry } from "./retry.js";
 
 export interface ModelProvider {
-  descriptor: ModelDescriptor;
-  complete(request: ProviderRequest): Promise<ProviderResponse>;
-  health?(): Promise<boolean>;
+  readonly descriptor: ModelDescriptor;
+  complete(request: ProviderRequest, signal?: AbortSignal): Promise<ProviderResponse>;
+  health?(signal?: AbortSignal): Promise<boolean>;
 }
 
 export interface RoutingPolicy {
-  freeFirst?: boolean;
-  preferredProviders?: string[];
-  maxAttempts?: number;
+  readonly freeFirst?: boolean;
+  readonly preferredProviders?: readonly string[];
+  readonly maxAttempts?: number;
+  readonly signal?: AbortSignal;
+}
+
+interface ManagedProvider {
+  readonly provider: ModelProvider;
+  readonly breaker: CircuitBreaker;
 }
 
 export class AIRouter {
-  constructor(private readonly providers: ModelProvider[]) {}
+  private readonly providers: ManagedProvider[];
+
+  constructor(providers: readonly ModelProvider[]) {
+    this.providers = providers.map(provider => ({ provider, breaker: new CircuitBreaker() }));
+  }
 
   async complete(
     request: Omit<ProviderRequest, "model"> & { capability?: Capability },
     policy: RoutingPolicy = {},
   ): Promise<ProviderResponse> {
     const candidates = this.providers
-      .filter(p => p.descriptor.enabled !== false)
-      .filter(p => !request.capability || p.descriptor.capabilities.includes(request.capability))
-      .sort((a, b) => this.score(b.descriptor, policy) - this.score(a.descriptor, policy))
+      .filter(({ provider }) => provider.descriptor.enabled !== false)
+      .filter(({ provider }) => !request.capability || provider.descriptor.capabilities.includes(request.capability))
+      .filter(({ breaker }) => breaker.canRequest())
+      .sort((a, b) => this.score(b.provider.descriptor, policy) - this.score(a.provider.descriptor, policy))
       .slice(0, policy.maxAttempts ?? this.providers.length);
 
-    if (!candidates.length) throw new Error("No compatible AI provider is configured.");
+    if (!candidates.length) throw new ProviderError("No compatible healthy AI provider is configured.");
 
     let lastError: unknown;
-    for (const provider of candidates) {
+    for (const { provider, breaker } of candidates) {
       try {
-        if (provider.health && !(await provider.health())) continue;
-        return await provider.complete({ ...request, model: provider.descriptor });
+        if (provider.health && !(await provider.health(policy.signal))) { breaker.failure(); continue; }
+        const response = await withRetry(
+          () => provider.complete({ ...request, model: provider.descriptor }, policy.signal),
+          undefined,
+          policy.signal,
+        );
+        breaker.success();
+        return response;
       } catch (error) {
+        breaker.failure();
         lastError = error;
       }
     }
-    throw new Error(`All compatible AI providers failed: ${String(lastError ?? "unknown error")}`);
+    throw new ProviderError("All compatible AI providers failed.", lastError);
   }
 
   private score(model: ModelDescriptor, policy: RoutingPolicy): number {
     let score = model.free && policy.freeFirst !== false ? 100 : 0;
-    const preferred = policy.preferredProviders ?? [];
-    const index = preferred.indexOf(model.provider);
+    const index = (policy.preferredProviders ?? []).indexOf(model.provider);
     if (index >= 0) score += 50 - index;
     return score;
   }
