@@ -1,1 +1,14 @@
-{"name":"@nexron/shared","private":true,"version":"0.1.0","type":"module","scripts":{"typecheck":"tsc --noEmit","test":"node --test"}}
+{
+  "name": "@nexron/shared",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "typescript": "5.8.3",
+    "@types/node": "22.15.21"
+  }
+}
