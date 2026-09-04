@@ -10,7 +10,7 @@ export interface AgentDefinition {
 }
 
 export interface AgentContext {
-  readonly messages: ChatMessage[];
+  readonly messages?: ChatMessage[];
   readonly signal?: AbortSignal;
 }
 
@@ -37,8 +37,9 @@ export class AgentRuntime {
   ) {
     this.executor = new TaskExecutor({
       execute: async (task, context) => {
+        if (context.signal?.aborted) throw context.signal.reason;
         const messages: ChatMessage[] = [
-          { role: "system", content: "You are Nexron agent task " + task.title + "." },
+          { role: "system", content: "You are the Nexron agent executing: " + task.title },
           { role: "user", content: typeof task.input === "string" ? task.input : JSON.stringify(task.input ?? {}) },
         ];
         const result = await this.router.complete(
@@ -53,15 +54,15 @@ export class AgentRuntime {
   async run(input: string, context: AgentContext = {}): Promise<AgentRunResult> {
     const planned = await this.planner.plan(input, context);
     const tasks = await this.executor.run(planned, { signal: context.signal });
-    const last = [...tasks].reverse().find(task => task.status === "completed");
-    if (!last) throw new Error("Agent run completed without a successful task.");
+    const completed = tasks.filter(task => task.status === "completed");
+    if (!completed.length) throw new Error("Agent run completed without a successful task.");
 
     const final = await this.router.complete({
       messages: [
-        ...context.messages,
+        ...(context.messages ?? []),
         { role: "user", content: "Original request: " + input },
-        { role: "assistant", content: JSON.stringify(tasks) },
-        { role: "user", content: "Produce the final concise answer from the completed task outputs." },
+        { role: "assistant", content: JSON.stringify(completed.map(t => ({ id: t.id, title: t.title, output: t.output }))) },
+        { role: "user", content: "Synthesize the completed task outputs into the final answer." },
       ],
       capability: "chat",
       stream: false,
