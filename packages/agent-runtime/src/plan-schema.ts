@@ -1,8 +1,6 @@
 import type { AgentTask, Capability } from "@nexron/shared";
 
 const capabilities = new Set<Capability>(["chat","coding","research","browser","vision","tool_use","lead_intelligence"]);
-const statuses = new Set<AgentTask["status"]>(["pending","running","completed","failed","blocked"]);
-
 export interface RawPlanTask {
   id: string;
   title: string;
