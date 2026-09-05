@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: nexron
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: corepack enable && pnpm install --frozen-lockfile=false && pnpm build
+    startCommand: pnpm --filter @nexron/web start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: NEXRON_API_TOKEN
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: LEADPILOT_URL
+        sync: false
+      - key: LEADPILOT_API_KEY
+        sync: false
+      - key: LEADPILOT_SEARCH_PATH
+        value: /leads/search
