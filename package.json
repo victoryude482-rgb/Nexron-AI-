@@ -6,9 +6,10 @@
   "packageManager": "pnpm@10.0.0",
   "scripts": {
     "dev": "pnpm --parallel --filter @nexron/web dev",
-    "build": "pnpm -r build",
+    "build": "pnpm --filter @nexron/api build && pnpm --filter @nexron/web build",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "lint": "pnpm -r lint"
+    "lint": "pnpm -r lint",
+    "start": "pnpm --filter @nexron/web start"
   }
 }
