@@ -7,4 +7,9 @@ export async function authFromRequest(request:Request,env:Record<string,string|u
  if(url&&serviceKey&&token){try{const client=createClient(url,serviceKey,{auth:{persistSession:false,autoRefreshToken:false}});const {data,error}=await client.auth.getUser(token);if(!error&&data.user)return {userId:data.user.id,authenticated:true};}catch{/* invalid credentials remain unauthenticated */}}
  return {userId:"anonymous",authenticated:false};
 }
-export function requireAuth(context:AuthContext):Response|null{if(!context.authenticated)return new Response(JSON.stringify({error:"Authentication required."}),{status:401,headers:{"content-type":"application/json"}});return null;}
+export function requireAuth(context:AuthContext,env:Record<string,string|undefined>=process.env):Response|null{
+ const configured=Boolean(env.NEXRON_API_TOKEN?.trim()&&env.NEXRON_API_TOKEN.trim().length>0)||(Boolean(env.SUPABASE_URL?.trim())&&Boolean(env.SUPABASE_SERVICE_ROLE_KEY?.trim()));
+ if(!configured)return null;
+ if(!context.authenticated)return new Response(JSON.stringify({error:"Authentication required."}),{status:401,headers:{"content-type":"application/json"}});
+ return null;
+}
