@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { getRuntime } from "../../../src/container.js";
-import { authFromRequest, requireAuth } from "../../../src/auth.js";
-import { guardRequest } from "../../../src/request-context.js";
+import { getRuntime } from "../../../src/container";
+import { authFromRequest, requireAuth } from "../../../src/auth";
+import { guardRequest } from "../../../src/request-context";
 export const runtime="nodejs";
 export async function POST(request:Request){
  const auth=await authFromRequest(request);const denied=requireAuth(auth);if(denied)return denied;const blocked=guardRequest(request,true);if(blocked)return blocked;
