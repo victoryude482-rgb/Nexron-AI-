@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useMemo,useRef,useState} from "react";
 type Msg={role:"user"|"assistant";content:string}; type Conversation={id:string;title:string;messages:Msg[]};
+const API=process.env.NEXT_PUBLIC_API_URL||"https://nexron-api-prod.onrender.com";
 const starters=[["Research","Compare sources and synthesize findings."],["Code","Plan, review, and improve software."],["Leads","Discover and rank business prospects."],["Browser","Use approved tools to get things done."]];
 const uid=()=>crypto.randomUUID?.()??Date.now().toString(36);
 export default function HomePage(){
@@ -8,11 +9,11 @@ export default function HomePage(){
  const chat=useMemo(()=>chats.find(c=>c.id===active),[chats,active]);
  useEffect(()=>{try{const x=JSON.parse(localStorage.getItem("nexron-chats")||"[]");if(Array.isArray(x)){setChats(x);if(x[0])setActive(x[0].id)}}catch{}},[]);
  useEffect(()=>{localStorage.setItem("nexron-chats",JSON.stringify(chats));bottom.current?.scrollIntoView({behavior:"smooth"})},[chats]);
- useEffect(()=>{fetch("/api/health").then(r=>setHealth(r.ok?"online":"offline")).catch(()=>setHealth("offline"))},[]);
+ useEffect(()=>{fetch(API+"/api/health").then(r=>setHealth(r.ok?"online":"offline")).catch(()=>setHealth("offline"))},[]);
  const create=()=>{const c={id:uid(),title:"New task",messages:[]};setChats(x=>[c,...x]);setActive(c.id);setMobile(false);setError("")};
- const remove=async(id:string)=>{setChats(x=>x.filter(c=>c.id!==id));if(active===id)setActive(chats.find(c=>c.id!==id)?.id||"");fetch("/api/conversations/"+id,{method:"DELETE"}).catch(()=>{})};
+ const remove=async(id:string)=>{setChats(x=>x.filter(c=>c.id!==id));if(active===id)setActive(chats.find(c=>c.id!==id)?.id||"");fetch(API+"/api/conversations/"+id,{method:"DELETE"}).catch(()=>{})};
  async function send(){const text=input.trim();if(!text||busy)return;let target=active;if(!target){const c={id:uid(),title:text.slice(0,42),messages:[]};setChats(x=>[c,...x]);setActive(c.id);target=c.id}else setChats(x=>x.map(c=>c.id===target?{...c,title:c.title==="New task"?text.slice(0,42):c.title,messages:[...c.messages,{role:"user",content:text}]}:c));setInput("");setBusy(true);setError("");
- try{const res=await fetch("/api/chat/stream",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({message:text})});if(!res.ok){throw new Error((await res.json().catch(()=>({}))).error||"Request failed")}if(!res.body)throw new Error("Streaming is unavailable");const reader=res.body.getReader(),decoder=new TextDecoder();let buf="",answer="",added=false;
+ try{const res=await fetch(API+"/api/chat/stream",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({message:text})});if(!res.ok){throw new Error((await res.json().catch(()=>({}))).error||"Request failed")}if(!res.body)throw new Error("Streaming is unavailable");const reader=res.body.getReader(),decoder=new TextDecoder();let buf="",answer="",added=false;
  while(true){const {value,done}=await reader.read();if(done)break;buf+=decoder.decode(value,{stream:true});const parts=buf.split("\n\n");buf=parts.pop()||"";for(const ev of parts){const line=ev.split("\n").find(x=>x.startsWith("data: "));if(!line)continue;const d=JSON.parse(line.slice(6));if(d.error)throw new Error(d.error);if(d.delta){answer+=d.delta;setChats(x=>x.map(c=>{if(c.id!==target)return c;const msgs=added?c.messages.slice(0,-1):c.messages;added=true;return {...c,messages:[...msgs,{role:"assistant",content:answer}]}}))}}}
  }catch(e){setError(e instanceof Error?e.message:"Something went wrong")}finally{setBusy(false)}}
  return <main className="appShell">
