@@ -6,7 +6,7 @@ export interface OpenAICompatibleOptions { readonly baseUrl:string; readonly api
 export class OpenAICompatibleProvider implements ModelProvider {
  readonly descriptor:ModelDescriptor; private readonly baseUrl:string; private readonly apiKey?:string; private readonly headers:Record<string,string>; private readonly fetchImpl:typeof fetch;
  constructor(options:OpenAICompatibleOptions){this.descriptor=options.descriptor;this.baseUrl=options.baseUrl.replace(/\/$/,"");this.apiKey=options.apiKey;this.headers=options.headers??{};this.fetchImpl=options.fetchImpl??fetch;}
- private requestHeaders(){const headers={"content-type":"application/json",...this.headers};if(this.apiKey)headers.authorization="Bearer "+this.apiKey;return headers;}
+ private requestHeaders(){const headers:Record<string,string>={"content-type":"application/json",...this.headers};if(this.apiKey)headers.authorization="Bearer "+this.apiKey;return headers;}
  async complete(request:ProviderRequest,signal?:AbortSignal):Promise<ProviderResponse>{
   const response=await this.fetchImpl(this.baseUrl+"/chat/completions",{method:"POST",headers:this.requestHeaders(),body:JSON.stringify({...request,model:request.model.id,stream:false}),signal});
   const raw=await response.text();if(!response.ok)throw new ProviderError("Provider returned HTTP "+response.status+": "+raw.slice(0,500));
