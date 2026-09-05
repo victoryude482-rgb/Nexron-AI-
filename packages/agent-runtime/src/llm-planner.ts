@@ -12,7 +12,7 @@ export class LLMTaskPlanner implements AgentTaskPlanner {
         role: "system",
         content: [
           "You are Nexron's task planner.",
-          "Return ONLY valid JSON: {"tasks":[{"id":"...","title":"...","capability":"...","dependsOn":[],"input":"..."}]}",
+          'Return ONLY valid JSON: {"tasks":[{"id":"...","title":"...","capability":"...","dependsOn":[],"input":"..."}]}',
           "Allowed capabilities: chat, coding, research, browser, vision, tool_use, lead_intelligence.",
           "Use 1-12 tasks for normal requests. Keep tasks focused. Dependencies must form a DAG.",
           "Never request secrets, credentials, unrestricted shell access, or unsafe actions.",
