@@ -3,6 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   output: "standalone",
   poweredByHeader: false,
+  async headers() { return [{ source: "/api/:path*", headers: [{ key: "Access-Control-Allow-Origin", value: "https://nexron-web-prod.onrender.com" }, { key: "Access-Control-Allow-Methods", value: "GET,POST,DELETE,OPTIONS" }, { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization" }] }] },
   transpilePackages: [
     "@nexron/shared",
     "@nexron/ai-router",
