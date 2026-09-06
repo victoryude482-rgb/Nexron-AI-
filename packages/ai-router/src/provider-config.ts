@@ -1,5 +1,6 @@
 import type { Capability, ModelDescriptor } from "@nexron/shared";
-import { OpenAICompatibleProvider } from "./openai-compatible.js";\nimport { CognexaProvider } from "./cognexa-provider.js";
+import { OpenAICompatibleProvider } from "./openai-compatible.js";
+import { CognexaProvider } from "./cognexa-provider.js";
 import type { ModelProvider } from "./router.js";
 
 export interface ProviderConfig {
@@ -19,7 +20,8 @@ const csv = (value: string | undefined): Capability[] =>
 export function providerFromEnv(prefix: string, env: Record<string, string | undefined>): ModelProvider | null {
   const baseUrl = env[prefix + "_BASE_URL"];
   const model = env[prefix + "_MODEL"];
-  if (!baseUrl || !model) return null;\n  if (prefix === "COGNEXA") return new CognexaProvider({ baseUrl, descriptor: { id: model, provider: env[prefix + "_NAME"] ?? "cognexa", capabilities: csv(env[prefix + "_CAPABILITIES"]), contextWindow: env[prefix + "_CONTEXT_WINDOW"] ? Number(env[prefix + "_CONTEXT_WINDOW"]) : undefined, free: true, enabled: env[prefix + "_ENABLED"] !== "false" } });
+  if (!baseUrl || !model) return null;
+  if (prefix === "COGNEXA") return new CognexaProvider({ baseUrl, descriptor: { id: model, provider: env[prefix + "_NAME"] ?? "cognexa", capabilities: csv(env[prefix + "_CAPABILITIES"]), contextWindow: env[prefix + "_CONTEXT_WINDOW"] ? Number(env[prefix + "_CONTEXT_WINDOW"]) : undefined, free: true, enabled: env[prefix + "_ENABLED"] !== "false" } });
   const descriptor: ModelDescriptor = {
     id: model, provider: env[prefix + "_NAME"] ?? prefix.toLowerCase(),
     capabilities: csv(env[prefix + "_CAPABILITIES"]),
