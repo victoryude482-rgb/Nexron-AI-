@@ -1,2 +1,3 @@
 export * from "./registry.js";
-export * from "./approval.js";
+export { DefaultApprovalPolicy } from "./approval.js";
+export type { ApprovalPolicy } from "./approval.js";
