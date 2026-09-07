@@ -1,7 +1,9 @@
 import { getRuntime } from "../../../../src/container";
 import { authFromRequest, requireAuth } from "../../../../src/auth";
 import { guardRequest } from "../../../../src/request-context";
+import { handleCorsPreflight } from "../../../../src/cors";
 export const runtime="nodejs";
+export async function OPTIONS(request:Request){return handleCorsPreflight(request);}
 export async function POST(request:Request){
  const auth=await authFromRequest(request);const denied=requireAuth(auth);if(denied)return denied;const blocked=guardRequest(request,true);if(blocked)return blocked;
  const body=await request.json() as {message?:unknown};
