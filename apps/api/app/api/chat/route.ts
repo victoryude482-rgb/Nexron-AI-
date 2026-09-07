@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { getRuntime } from "../../../src/container";
 import { authFromRequest, requireAuth } from "../../../src/auth";
 import { guardRequest } from "../../../src/request-context";
+import { handleCorsPreflight } from "../../../src/cors";
 export const runtime="nodejs";
+export async function OPTIONS(request:Request){return handleCorsPreflight(request);}
 export async function POST(request:Request){
  const auth=await authFromRequest(request);const denied=requireAuth(auth);if(denied)return denied;const blocked=guardRequest(request,true);if(blocked)return blocked;
  try{const body=await request.json() as {message?:unknown};if(typeof body.message!=="string"||!body.message.trim())return NextResponse.json({error:"message must be a non-empty string"},{status:400});if(body.message.length>20000)return NextResponse.json({error:"message is too long"},{status:413});
