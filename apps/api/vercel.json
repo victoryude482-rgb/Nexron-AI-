@@ -1,5 +1,0 @@
-{
-  "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile",
-  "buildCommand": "cd ../.. && pnpm --filter @nexron/api build",
-  "outputDirectory": ".next"
-}
